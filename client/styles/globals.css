@@ -23,4 +23,12 @@ body {
            focus:outline-none focus:ring-1 focus:ring-primary 
            rounded-lg;
   }
+
+  .nuggets-deeplink {
+    color: #8665a1;
+  }
+
+  .nuggets-deeplink:hover {
+    text-decoration: underline;
+  }
 }
