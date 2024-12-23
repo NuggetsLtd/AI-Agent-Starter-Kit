@@ -1,7 +1,7 @@
 import { AnyType } from "@/utils.js";
 import { Memory, Provider, IAgentRuntime, State } from "@ai16z/eliza";
 import { ethers } from "ethers";
-import { chainMap } from "../../utils.js";
+import { chainMap } from "../../../utils.js";
 
 export class CollabLandWalletBalanceProvider implements Provider {
   async get(

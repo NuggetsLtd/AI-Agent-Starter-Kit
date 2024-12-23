@@ -12,7 +12,7 @@ import {
 } from "@ai16z/eliza";
 import { CollabLandBaseAction } from "./collabland.action.js";
 import { randomUUID } from "crypto";
-import { chainMap } from "../../utils.js";
+import { chainMap } from "../../../utils.js";
 import { CollabLandWalletBalanceProvider } from "../providers/collabland-wallet-balance.provider.js";
 import { ethers, parseEther } from "ethers";
 
