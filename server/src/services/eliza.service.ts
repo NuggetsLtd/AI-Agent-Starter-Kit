@@ -40,7 +40,7 @@ import { messageCompletionFooter, shouldRespondFooter } from "@ai16z/eliza";
 import { Message } from "grammy/types";
 import { Bot, Context } from "grammy";
 import { bootstrapPlugin } from "@ai16z/plugin-bootstrap";
-import { collablandPlugin } from "../plugins/collabland.plugin.js";
+import { collablandPlugin } from "../plugins/collabland/plugin.js";
 
 const MAX_MESSAGE_LENGTH = 4096; // Telegram's max message length
 
