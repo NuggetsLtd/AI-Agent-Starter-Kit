@@ -39,6 +39,9 @@ const ENV_HINTS = {
   TWITTER_CLIENT_SECRET:
     "Enter your Twitter client secret, you can get it from Twitter Developer Portal, go to https://developer.twitter.com/en/portal/dashboard to create one",
   // Add more hints as needed from .env.example
+  NUGGETS_CLIENT_ID: "Enter your Nuggets OIDC Client ID",
+  NUGGETS_PRIVATE_KEY:
+    "Enter your Nuggets OIDC client private key in stringified JWK format",
 };
 
 const rl = readline.createInterface({
