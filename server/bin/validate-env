@@ -58,6 +58,10 @@ const ENV_HINTS = {
     "Enter your Twitter access token, you can get it from Twitter Developer Portal, go to https://developer.twitter.com/en/portal/dashboard to create one",
   TWITTER_ACCESS_TOKEN_SECRET:
     "Enter your Twitter access token secret, you can get it from Twitter Developer Portal, go to https://developer.twitter.com/en/portal/dashboard to create one",
+  NUGGETS_CLIENT_ID:
+    "Enter your Nuggets OIDC Client ID, you can get it from the Nuggets Accounts Portal, go to https://accounts.nuggets.life to create one",
+  NUGGETS_PRIVATE_KEY:
+    "Enter your Nuggets OIDC client private key in stringified JWK format, you can get it from the Nuggets Accounts Portal, go to https://accounts.nuggets.life to create one",
   // Add more hints as needed from .env.example
   ORBIS_CONTEXT_ID:
     "[Press enter/return to skip] (optional - gated data) Visit the Orbis Studio (https://studio.useorbis.com/) and log in with your browser wallet. Once logged in, set up a new context under the `Contexts` tab and use the value here",

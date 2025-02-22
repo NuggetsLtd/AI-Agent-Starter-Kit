@@ -12,14 +12,20 @@ import {
 } from "@ai16z/eliza";
 import { CollabLandBaseAction } from "./collabland.action.js";
 import { randomUUID } from "crypto";
-import { chainMap } from "../../utils.js";
-import { CollabLandWalletBalanceProvider } from "../providers/collabland-wallet-balance.provider.js";
-import { ethers, parseEther } from "ethers";
+import { chainMap } from "../../../utils.js";
 import {
   BotAccountMemory,
-  ExecuteUserOpResponse,
-  UserOperationReceipt,
-} from "../types.js";
+  ExecuteSolanaTransactionResponse,
+} from "../../types.js";
+import { CollabLandSolanaWalletBalanceProvider } from "../providers/collabland-solana-wallet-balance.provider.js";
+import {
+  Connection,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+  Transaction,
+  PublicKey,
+  clusterApiUrl,
+} from "@solana/web3.js";
 
 // User: Hi
 // Agent: Hello, I'm a blockchain assistant, what chain would you want to look into?
@@ -38,9 +44,9 @@ const extractChainTemplate = `Respond with a JSON markdown block containing only
 }
 \`\`\`
 # Explanation of the above JSON fields:
-- account: The account to send the ETH to (only address, no symbols or ETH symbol).
-- amount: The amount of ETH to send (only number, no symbols or ETH symbol).
-- canFund: Whether agent's account has enough ETH to send.
+- account: The account to send the SOL to (only address, no symbols or SOL symbol).
+- amount: The amount of SOL to send (only number, no symbols or SOL symbol).
+- canFund: Whether agent's account has enough SOL to send.
 
 # These are only the available chains to find:
 {{availableChains}}
@@ -51,26 +57,26 @@ const extractChainTemplate = `Respond with a JSON markdown block containing only
 # Here's your smart account details:
 {{accountDetails}}
 
-# Here's the agent's current ETH balance:
+# Here's the agent's current SOL balance:
 {{agentBalance}}
 
 # These are the recent messages:
 {{recentMessages}}
 
-Given the recent messages and the available, amount of ETH to send, and the account to send to. Use the available chains only, if not available return null!
+Given the recent messages and the available, amount of SOL to send, and the account to send to. Use the available chains only, if not available return null!
 
-For \`canFund\`, if the agent's current ETH balance is less than the amount requested by the user, then return false, else return true.
+For \`canFund\`, if the agent's current SOL balance is less than the amount requested by the user, then return false, else return true.
 
 Always prioritize the recent messages, and then the older messages. If the user had recently mentioned to switch to a chain, then use that chain.
 
 Respond with a JSON markdown block containing only the extracted values, use null for any values that cannot be determined.`;
 
-export class SendETHAction extends CollabLandBaseAction {
+export class SendSOLAction extends CollabLandBaseAction {
   constructor() {
-    const name = "SEND_ETH";
-    const similes = ["SEND_ETH", "SEND_ETH_TO_ACCOUNT", "SEND_ETH_TO_ADDRESS"];
+    const name = "SEND_SOL";
+    const similes = ["SEND_SOL", "SEND_SOL_TO_ACCOUNT", "SEND_SOL_TO_ADDRESS"];
     const description =
-      "Extracts the chain, amount of ETH to send, and the account to send to from the recent messages, which the user has requested to send ETH to.";
+      "Extracts the chain, amount of SOL to send, and the account to send to from the recent messages, which the user has requested to send SOL to.";
     const handler: Handler = async (
       _runtime,
       _message,
@@ -79,24 +85,25 @@ export class SendETHAction extends CollabLandBaseAction {
       _callback
     ): Promise<boolean> => {
       try {
-        console.log("[SendETHAction] message", _message);
-        console.log("[SendETHAction] options", _options);
-        console.log("[SendETHAction] state", _state);
+        console.log("[SendSOLAction] message", _message);
+        console.log("[SendSOLAction] options", _options);
+        console.log("[SendSOLAction] state", _state);
 
         const availableChains = Object.entries(chainMap)
           .map(([chain]) => {
             return `- ${chain}`;
           })
           .join("\n");
-        console.log("[SendETHAction] availableChains", availableChains);
+        console.log("[SendSOLAction] availableChains", availableChains);
         let chain: string | null = null;
         const onChainMemoryManager = _runtime.getMemoryManager("onchain")!;
         // this is newest to oldest
         const onChainMemories = await onChainMemoryManager.getMemories({
           roomId: _message.roomId,
           unique: false,
+          count: 1000,
         });
-        console.log("[SendETHAction] onChainMemories", onChainMemories);
+        console.log("[SendSOLAction] onChainMemories", onChainMemories);
         for (const memory of onChainMemories) {
           if (memory.content.chain !== undefined) {
             chain = memory.content.chain as string;
@@ -106,49 +113,49 @@ export class SendETHAction extends CollabLandBaseAction {
         // Get the chain Id
         if (chain == null) {
           _callback?.({
-            text: "I cannot proceed because I don't know the chain you're looking for. I support Ethereum, Linea, Base, and others.",
+            text: "I cannot proceed because I don't know the chain you're looking for. I support Solana and others.",
           });
           return false;
         }
-        console.log("[SendETHAction] chain found in memories", chain);
+        console.log("[SendSOLAction] chain found in memories", chain);
 
         const chainId = chainMap[chain as keyof typeof chainMap];
         if (!chainId) {
           _callback?.({
-            text: "I cannot proceed because I don't know the chain you're looking for. I support Ethereum, Linea, Base, and others.",
+            text: "I cannot proceed because I don't know the chain you're looking for. I support Solana and others.",
           });
           return false;
         }
 
-        console.log("[SendETHAction] chainId", chainId);
+        console.log("[SendSOLAction] chainId", chainId);
 
         let account: BotAccountMemory | null = null;
         for (const memory of onChainMemories) {
           if (
             memory.content.smartAccount &&
-            memory.content.type === "evm" && // Has to be EVM for sending ETH
-            memory.content.chainId == chainId
+            memory.content.type === "solana" && // Has to be Solana for sending SOL
+            memory.content.network == chainId
           ) {
             account = memory.content as unknown as BotAccountMemory;
-            console.log("[SendETHAction] account found", account);
+            console.log("[SendSOLAction] account found", account);
             break;
           }
         }
 
         if (!account?.smartAccount) {
-          console.log("[SendETHAction] account not found");
+          console.log("[SendSOLAction] account not found");
           _callback?.({
-            text: "I cannot proceed because I can't determine my account. Can you help me with which chain you want me to send ETH to?",
+            text: "I cannot proceed because I can't determine my account. Can you help me with which chain you want me to send SOL to?",
             action: "GET_SMART_ACCOUNT",
           });
           return false;
         }
-        const balance = await new CollabLandWalletBalanceProvider().get(
+        const balance = await new CollabLandSolanaWalletBalanceProvider().get(
           _runtime,
           _message,
           _state
         );
-        console.log("[SendETHAction] balance", balance);
+        console.log("[SendSOLAction] balance", balance);
         const extractContext = composeContext({
           state: {
             ..._state!,
@@ -163,28 +170,20 @@ export class SendETHAction extends CollabLandBaseAction {
           },
           template: extractChainTemplate,
         });
-        console.log("[SendETHAction] extractContext", extractContext);
+        console.log("[SendSOLAction] extractContext", extractContext);
         const extractedFundData = await generateObject({
           context: extractContext,
           modelClass: ModelClass.SMALL,
           runtime: _runtime,
         });
-        console.log("[SendETHAction] extractedFundData", extractedFundData);
-        //FIXME: Need to double-check canFund, since the AI can hallucinate
-        if (extractedFundData.canFund === false) {
-          const _canFund =
-            BigInt(parseEther(balance)) >=
-            BigInt(parseEther(extractedFundData.amount));
-          console.log("[SendETHAction] _canFund", _canFund);
-          extractedFundData.canFund = _canFund;
-        }
+        console.log("[SendSOLAction] extractedFundData", extractedFundData);
         if (
           !extractedFundData.canFund ||
           !extractedFundData.amount ||
           !extractedFundData.account
         ) {
           _callback?.({
-            text: "I cannot proceed with the request, I didn't find the necessary information to send ETH, or I lack enough ETH to send.",
+            text: "I cannot proceed with the request, I didn't find the necessary information to send SOL, or I lack enough SOL to send.",
           });
           return false;
         }
@@ -197,7 +196,7 @@ export class SendETHAction extends CollabLandBaseAction {
           roomId: _message.roomId,
           content: {
             text: "",
-            chain: chain,
+            network: chain,
             account: extractedFundData.account,
             amount: extractedFundData.amount,
             canFund: extractedFundData.canFund,
@@ -211,17 +210,54 @@ export class SendETHAction extends CollabLandBaseAction {
         );
         await onChainMemoryManager.createMemory(fundIntentMemory);
 
-        console.log("Hitting Collab.Land APIs to submit user operation...");
+        console.log("Hitting Collab.Land APIs to submit Solana transaction...");
+        const connection = new Connection(
+          clusterApiUrl(chainId === "sol_dev" ? "devnet" : "mainnet-beta"),
+          "confirmed"
+        );
+        const recipientAccount = new PublicKey(extractedFundData.account);
+        const botAccount = new PublicKey(account.smartAccount);
+        const amount = Math.floor(
+          LAMPORTS_PER_SOL * parseFloat(extractedFundData.amount)
+        );
+        console.log("[SendSOLAction] amount", amount);
+        const transaction = new Transaction().add(
+          SystemProgram.transfer({
+            fromPubkey: botAccount,
+            toPubkey: recipientAccount,
+            lamports: amount,
+          })
+        );
+        console.log("[SendSOLAction] transaction", transaction);
+        transaction.feePayer = botAccount;
+        console.log(
+          "[SendSOLAction] transaction.feePayer:",
+          transaction.feePayer
+        );
+        transaction.recentBlockhash = (
+          await connection.getLatestBlockhash()
+        ).blockhash;
+        console.log(
+          "[SendSOLAction] transaction.recentBlockhash",
+          transaction.recentBlockhash
+        );
+        const serializedTransaction = transaction
+          .serialize({
+            requireAllSignatures: false,
+            verifySignatures: false,
+          })
+          .toString("base64");
+        console.log(
+          "[SendSOLAction] serializedTransaction",
+          serializedTransaction
+        );
         const payload = {
-          target: extractedFundData.account,
-          value:
-            "0x" + ethers.parseEther(extractedFundData.amount).toString(16),
-          calldata: "",
+          serializedTransactionBase64: serializedTransaction,
         };
-        console.log("[SendETHAction] payload", payload);
+        console.log("[SendSOLAction] payload", payload);
         const { data: _resData } =
-          await this.client.post<ExecuteUserOpResponse>(
-            `/telegrambot/evm/submitUserOperation?chainId=${chainId}`,
+          await this.client.post<ExecuteSolanaTransactionResponse>(
+            `/telegrambot/solana/submitTransaction?network=${chainId}`,
             payload,
             {
               headers: {
@@ -233,7 +269,7 @@ export class SendETHAction extends CollabLandBaseAction {
               timeout: 10 * 60 * 1000,
             }
           );
-        console.log("[SendETHAction] response from Collab.Land API", _resData);
+        console.log("[SendSOLAction] response from Collab.Land API", _resData);
         await onChainMemoryManager.removeMemory(fundIntentMemory.id!);
         const fundPendingMemory: Memory = {
           id: randomUUID(),
@@ -246,32 +282,31 @@ export class SendETHAction extends CollabLandBaseAction {
             account: extractedFundData.account,
             amount: extractedFundData.amount,
             canFund: extractedFundData.canFund,
-            userOpHash: _resData.userOperationHash,
+            txSignature: _resData.txSignature,
             status: "PENDING",
           },
         };
         await onChainMemoryManager.createMemory(fundPendingMemory);
         _callback?.({
-          text: `Your request to send ${extractedFundData.amount} ETH to ${extractedFundData.account} has been sent from my account ${account.smartAccount} on ${chain}.\nStatus: Pending\nUser Operation Hash: ${_resData.userOperationHash}`,
+          text: `Your request to send ${extractedFundData.amount} SOL to ${extractedFundData.account} has been sent from my account ${account.smartAccount} on ${chain}.\nStatus: Pending\nTransaction Signature: ${_resData.txSignature}`,
         });
         console.log(
-          "Hitting Collab.Land APIs for confirming user operation..."
+          "Hitting Collab.Land APIs for confirming Solana transaction..."
         );
-        const { data: _userOpReceiptData } =
-          await this.client.get<UserOperationReceipt>(
-            `/telegrambot/evm/userOperationReceipt?chainId=${_resData.chainId}&userOperationHash=${_resData.userOperationHash}`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                "X-TG-BOT-TOKEN": process.env.TELEGRAM_BOT_TOKEN,
-                "X-API-KEY": process.env.COLLABLAND_API_KEY,
-              },
-              timeout: 10 * 60 * 1000,
-            }
-          );
+        const { data: _txReceiptData } = await this.client.get(
+          `/telegrambot/solana/transactionResponse?network=${chainId}&txSignatureBase64=${_resData.txSignature}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "X-TG-BOT-TOKEN": process.env.TELEGRAM_BOT_TOKEN,
+              "X-API-KEY": process.env.COLLABLAND_API_KEY,
+            },
+            timeout: 10 * 60 * 1000,
+          }
+        );
         console.log(
-          "[SendETHAction] response from Collab.Land API",
-          _userOpReceiptData
+          "[SendSOLAction] response from Collab.Land API",
+          _txReceiptData
         );
         await onChainMemoryManager.removeMemory(fundPendingMemory.id!);
         await onChainMemoryManager.createMemory(
@@ -286,15 +321,15 @@ export class SendETHAction extends CollabLandBaseAction {
               account: extractedFundData.account,
               amount: extractedFundData.amount,
               canFund: extractedFundData.canFund,
-              userOpHash: _resData.userOperationHash,
-              txHash: _userOpReceiptData.receipt?.transactionHash,
+              txReceipt: _txReceiptData.response,
+              txSignature: _resData.txSignature,
               status: "EXECUTED",
             },
           },
           true
         );
         _callback?.({
-          text: `Your request to send ${extractedFundData.amount} ETH to ${extractedFundData.account} has been sent from my account ${account.smartAccount} on ${chain}.\nStatus: Executed\nUser Operation Hash: ${_userOpReceiptData.userOpHash}\nTransaction Hash: ${_userOpReceiptData.receipt?.transactionHash}`,
+          text: `Your request to send ${extractedFundData.amount} SOL to ${extractedFundData.account} has been sent from my account ${account.smartAccount} on ${chain}.\nStatus: Executed\nTransaction Signature: ${_resData.txSignature}\nTransaction Receipt: ${JSON.stringify(_txReceiptData.response)}`,
         });
         return true;
       } catch (error) {

@@ -1,4 +1,4 @@
-import { AnyType, getCollablandApiUrl } from "../../utils.js";
+import { AnyType, getCollablandApiUrl } from "../../../utils.js";
 import { Action, ActionExample, Validator, Handler } from "@ai16z/eliza";
 import axios, { AxiosInstance } from "axios";
 

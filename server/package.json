@@ -24,7 +24,7 @@
     "agent-twitter-client": "^0.0.18",
     "@useorbis/db-sdk": "0.0.60-alpha",
     "axios": "^1.7.7",
-    "better-sqlite3": "^11.6.0",
+    "better-sqlite3": "^11.7.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -33,6 +33,7 @@
     "grammy": "^1.32.0",
     "http-errors": "^2.0.0",
     "jsonc-parser": "^3.3.1",
+    "openid-client": "^6.1.7",
     "node-cache": "^5.1.2",
     "prettier": "^3.4.2",
     "tsc-watch": "^6.2.1"

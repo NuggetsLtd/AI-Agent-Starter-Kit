@@ -233,6 +233,28 @@ pnpm run dev
      GITHUB_CLIENT_SECRET=1234567890abcdef1234567890abcdef12345678
      ```
 
+- `NUGGETS_CLIENT_ID` & `NUGGETS_PRIVATE_KEY`: Authentication credentials for Nuggets OIDC integration
+
+  > *Note*: OIDC clients can be created for both personal, and organsiation accounts. Verified information, such as business information and verified social accoounts (i.e. X) is added to the user interaction screens.
+
+  1. Go to [Nuggets Account Portal](https://accounts.nuggets.life)
+  2. Sign in to the the portal using the Nuggets App (Nuggets PAY & ID) from your relevant app store
+  3. Once signed in, you can create a Client application under the "Checks" menu option
+  4. Select the "Advanced" tab for OIDC clients & click "Create"
+  5. Under "Advanced Checks" settings:
+     - Name: Your app name
+     - Redirect URLs: `http://{NGROK_DOMAIN}/auth` (development)
+     - Sign out callback URLs: `http://{NGROK_DOMAIN}/auth/github/callback`
+  6. After creating the app:
+     - Copy "Client ID" → `NUGGETS_CLIENT_ID`
+     - JSON Stringify downlaoded private key → `NUGGETS_PRIVATE_KEY`
+  7. Example:
+     ```env
+     GITHUB_CLIENT_ID=1234567890abcdef1234
+     GITHUB_CLIENT_SECRET={"kty":"RSA","kid":"vTNjuNZqsUDRflSgSTXC8VXl91l62W1009ZZivPv2_U","use":"sig","alg":"RS256","e":"AQAB","n":"hsuAaljoIonGYr091eDLWhoPK7wTX1JzSIjoRVKLfhwwiOeNWcY2akRks1CFssYUAHHN9wOEwYzYG169uWHK6PGiIxV6UBBeX6-0KIIEtMiOqgTj5PQpQ9I-Lja0dJUXAaIj5o9KnPIz5-4yqaey1_InNAjJ-MquiA3uqXyKrfN7-b5qRYU4cC4FTvsA9bMAefS2poJ3vIM4vEB8ReViF5NBm-FwcVwu4RDlKSeGaBKp4wQjDOedtqS-8aMKkDAHMHjfePw_HARj83TnqLDLfrHdU8ZFnhYevn0Hrcphfvszip5_JrDsTbz2AiEQsEbbNIKM_POp67iVIJB6Cug-5Q","d":"H2pKUX7LC1Gk5NpKERDFFAjCxGSe9zZWG--cgpuMWyXiweWFcgjaIcYy2f_ISTQU8U2UvR8az6ktrKNWAGCkU8oNCbQ1v3cxJ4fhqxcyVZfwd_uPyYqGG4Jib47cW9drdzv8tf1rXEyugD1pnVSyP9X2ARCTUeKa7qagmuulvoiMIUzVd0dKWkuYS5mdvQjlmAazTvi5ubRBkhKSJLc6fiHafjNqp4vTtJ0v_wMPz2slxvkCayK1xVOPO2cdi8QvI3EFx8JXfGgRV6DtW_4W-uUWuLltDt4aF57eveUsn0yxvvfuzfYfyYKtJIZidaN21zwsGXaOz5K43KSps44uwQ","p":"vIXzyNcy_FUWzHoRv6OdzpVUCejuTTK_Vw-JHzsBH0IwBu5Ytss4sQP0z6vbHW3feG3XU_c7xghkq3GBhGyIL36mewgSzcwlNmuvaa9fPGKs-j2WggiDXZ-jT5h-J-mNSAsi2BPhW3l21wKYtmLNZvqJB-4fG9EhVJrUBpEnkok","q":"twqE9gk-INw0xxMpQgN_ttJruQPFbi0lm4J6N622uCJhLIf1YtA7o6sDq6BxvRtnOzXXNNoeeByURYgAqFDhSExIs3hzur53ENdpseqC8-QBGwlP4XrnlHmkjHWjeLIig3zoQ7gNyPMSa7UoTGyvC8v5qj0lM7qgw8SP_xZDon0","dp":"P0VJoy8uSmeYRjn1uPaFoO6XDNhjGf-dHe_12khoQQBqs_jMR1T_CtHEGOqZmE_mvzlGGkUQh48Lkkp-6F2wexgrcYEtJmqMVq5fab3U3aRUX4vJ9ow64nIQUkdgl66XnwU1xYUujg--5bxWWmfgfd45nTK6uBBA-m8YF7ghqtk","dq":"MzHUAmSPZe1xLYTkczw7Sk0MKBEv9SLXc-lIea4yfsnO1_-m2F5Zb-ty-VvEtBmoA92JNZUUFJAZwGDLnkgQ2oHLi7bS15ZSAvnc7BAlVEWfMYqnNu-DOfnT1h1I_YcFNDWJWPdvk5a4vjtK7CUxyGDikYTMlO1L7bVaeQQnIpk","qi":"KvCjnUt8KPrwOb469i4YXqlr8fnSwDS98-hDYYZUKE47cbDVqCuziPM4gP5gAQFoyDo-vhBKCurFPIyD8QiPTFGkUMD0YeE71HymO1uCgLzmFrrT06KY3O1jes9rp5hy43PuGJ13BiAYPCLXPUyzxCMNadjek9kaQLItqxyXTC4"}
+     ```
+
+
 - `ORBIS_CONTEXT_ID`, `ORBIS_TABLE_ID`, & `ORBIS_ENV`: OrbisDB table identifiers to enable gated memory storage functionality
 
   1. Visit the [Orbis Studio](https://studio.useorbis.com/) and log in with your browser wallet. Once logged in, set up a new context under the `Contexts` tab. Assign that value to `ORBIS_CONTEXT_ID` in your .env file

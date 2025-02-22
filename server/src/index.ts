@@ -12,6 +12,7 @@ import twitterRouter from "./routes/twitter.js";
 import discordRouter from "./routes/discord.js";
 import cookieParser from "cookie-parser";
 import githubRouter from "./routes/github.js";
+import elizaRouter from "./routes/eliza.js";
 import { AnyType } from "./utils.js";
 import { isHttpError } from "http-errors";
 
@@ -55,6 +56,9 @@ app.use("/auth/discord", discordRouter);
 
 // Mount GitHub OAuth routes
 app.use("/auth/github", githubRouter);
+
+// Mount Eliza chatbot routes
+app.use("/eliza", elizaRouter);
 
 // 404 handler
 app.use((_req: Request, _res: Response, _next: NextFunction) => {

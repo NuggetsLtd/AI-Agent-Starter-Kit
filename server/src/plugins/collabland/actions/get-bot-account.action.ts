@@ -8,8 +8,8 @@ import {
 } from "@ai16z/eliza";
 import { CollabLandBaseAction } from "./collabland.action.js";
 import { randomUUID } from "crypto";
-import { chainMap } from "../../utils.js";
-import { BotAccountMemory, BotAccountResponse } from "../types.js";
+import { chainMap } from "../../../utils.js";
+import { BotAccountMemory, BotAccountResponse } from "../../types.js";
 
 export class GetBotAccountAction extends CollabLandBaseAction {
   constructor() {

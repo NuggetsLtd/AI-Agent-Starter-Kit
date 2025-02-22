@@ -16,7 +16,7 @@ import Database from "better-sqlite3";
 import path from "path";
 import { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
-import { gateDataPlugin } from "../plugins/gated-storage-plugin/index.js";
+import { gateDataPlugin } from "../plugins/collabland/gated-storage-plugin/index.js";
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
@@ -41,8 +41,8 @@ import { messageCompletionFooter, shouldRespondFooter } from "@ai16z/eliza";
 import { Message } from "grammy/types";
 import { Bot, Context } from "grammy";
 import { bootstrapPlugin } from "@ai16z/plugin-bootstrap";
-import { collablandPlugin } from "../plugins/collabland.plugin.js";
-import { StorageService } from "../plugins/gated-storage-plugin/services/storage.service.js";
+import { collablandPlugin } from "../plugins/collabland/plugin.js";
+import { StorageService } from "../plugins/collabland/gated-storage-plugin/services/storage.service.js";
 
 const MAX_MESSAGE_LENGTH = 4096; // Telegram's max message length
 

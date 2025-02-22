@@ -2,7 +2,7 @@ import { CeramicDocument } from "@useorbis/db-sdk";
 import { Orbis, type ServerMessage } from "./orbis.service.js";
 import axios, { AxiosInstance } from "axios";
 import fs from "fs";
-import { getCollablandApiUrl } from "../../../utils.js";
+import { getCollablandApiUrl } from "../../../../utils.js";
 import path, { resolve } from "path";
 import { elizaLogger, getEmbeddingZeroVector, Memory } from "@ai16z/eliza";
 

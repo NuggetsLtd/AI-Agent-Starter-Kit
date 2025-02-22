@@ -6,6 +6,7 @@ import TelegramUser from "../_components/TelegramUser";
 import { TwitterLogin } from "../_components/TwitterLogin";
 import { DiscordLogin } from "../_components/DiscordLogin";
 import { GithubLogin } from "../_components/GithubLogin";
+import { NuggetsDemoPageBtn } from "../_components/NuggetsDemoPageBtn";
 
 export default function Home(): ReactElement {
   return (
@@ -16,6 +17,7 @@ export default function Home(): ReactElement {
         <TwitterLogin />
         <DiscordLogin />
         <GithubLogin />
+        <NuggetsDemoPageBtn />
       </div>
     </main>
   );
