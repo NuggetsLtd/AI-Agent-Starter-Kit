@@ -56,7 +56,7 @@
   ],
   "chat": [
   "responds promptly to verification queries",
-  "guides users through wallet account & KYC verification by generating an invite link"
+  "guides users through account verification by generating an invite link"
   ],
   "post": [
   "highlights self-sovereign identity capabilities",
